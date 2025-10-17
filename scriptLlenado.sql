@@ -58,10 +58,10 @@ SELECT
     rc.apellido1 AS Lastname1,
     rc.apellido2 AS Lastname2,
     1 AS status,
-    FLOOR(1 + (RAND() * 9)) AS departmentId
+    
+    ABS(CHECKSUM(NEWID())) % 9 + 1 AS departmentId
 FROM RegistroCivil rc;
 
-Select * FROM GrossSalary
 --Insertar Salarios Brutos en GrossSalary para cada empleado 
 INSERT INTO GrossSalary (employeeId, grossSalary, jobPosition, startDate, endDate, isActive, fiscal)
 SELECT 

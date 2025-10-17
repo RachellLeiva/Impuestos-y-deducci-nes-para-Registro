@@ -92,8 +92,11 @@ CREATE TABLE employerCharge (
 CREATE TABLE deductionByEmployerCharge (
     employerChargeld INT NOT NULL,
     periodId INT NOT NULL,
+	organizationId  INT NOT NULL,
     totalDeduction DECIMAL(18,2) NOT NULL,
-    CONSTRAINT PK_DeductionByEmployerCharge PRIMARY KEY (employerChargeld, periodId),
+    CONSTRAINT PK_DeductionByEmployerCharge PRIMARY KEY (employerChargeld, periodId, organizationId),
+	CONSTRAINT FK_deductionByEmployerCharge_organizations FOREIGN KEY (organizationId) 
+    REFERENCES organizations(id),
     CONSTRAINT FK_DeductionByEmployerCharge_Charge FOREIGN KEY (employerChargeld) 
         REFERENCES employerCharge(id),
     CONSTRAINT FK_DeductionByEmployerCharge_Period FOREIGN KEY (periodId) 
