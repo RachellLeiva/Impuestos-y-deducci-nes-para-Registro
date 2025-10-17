@@ -33,6 +33,7 @@ CREATE TABLE PaymentSheet (
     grossSalaryId INT NOT NULL,
     periodId INT NOT NULL,
     totalDeductions DECIMAL(12,2) DEFAULT 0.00,
+	totalTaxRent DECIMAL(12,2) DEFAULT 0.00,
     calculationDate DATETIME NOT NULL,
     net_salary DECIMAL(12,2) NOT NULL,
     CONSTRAINT PK_PaymentSheet PRIMARY KEY (grossSalaryId, periodId),
