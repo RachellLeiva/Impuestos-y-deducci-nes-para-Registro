@@ -8,7 +8,8 @@ CREATE TABLE Employee (
 );
 
 CREATE TABLE GrossSalary (
-    employeesId VARCHAR(20) NOT NULL,
+	grossSalaryId INT AUTO_INCREMENT,
+    employeesId VARCHAR(10) NOT NULL,
     grossSalary DECIMAL(12,2) NOT NULL,
     jobPosition VARCHAR(50) NOT NULL,
     startDate DATETIME NOT NULL,
@@ -22,7 +23,7 @@ CREATE TABLE payrollPeriod (
     id INT PRIMARY KEY,
     period_number TINYINT NOT NULL,
     year SMALLINT NOT NULL,
-    pay_date DATETIME NOT NULL}
+    pay_date DATETIME NOT NULL
 );
 
 ALTER TABLE payrollPeriod 
@@ -42,8 +43,9 @@ CREATE TABLE PaymentSheet (
 );
 
 CREATE TABLE deductions (
-    deductionId INT PRIMARY KEY,
-    porcentage DECIMAL(5,2) NOT NULL,
+    deductionId INT PRIMARY KEY AUTO_INCREMENT,
+	nameDeduction VARCHAR(40),
+    porcentage DECIMAL(7,4) NOT NULL,
     startDate DATETIME NOT NULL,
     endDate DATETIME 
 );
@@ -63,8 +65,9 @@ CREATE TABLE employeeDeductions (
 );
 
 CREATE TABLE employerCharge (
-    id INT PRIMARY KEY,
-    porcentage DECIMAL(5,2) NOT NULL,
+    id INT PRIMARY KEY AUTO_INCREMENT,
+	nameCharge VARCHAR(40),
+    porcentage DECIMAL(7,4) NOT NULL,
     startDate DATETIME NOT NULL,
     endDate DATETIME
 );
@@ -79,3 +82,42 @@ CREATE TABLE deductionByEmployerCharge (
     CONSTRAINT FK_DeductionByEmployerCharge_Period FOREIGN KEY (periodId) 
         REFERENCES payrollPeriod(id)
 );
+
+CREATE TABLE excessTaxRent (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+	startDate DATETIME,
+	endDate DATETIME,
+    descripcion VARCHAR(100) NOT NULL,
+    lowerLimit DECIMAL(15,2) NOT NULL,
+    upperLimit DECIMAL(15,2) NULL,
+    porcentage DECIMAL(5,2) NOT NULL,
+    feeUpper DECIMAL(15,2) NOT NULL,
+    isActive BIT DEFAULT 1
+);
+
+CREATE TABLE taxRentEmployee (
+	employeeId VARCHAR(10),
+	excessTaxRentId INT,
+	periodId INT NOT NULL,
+	isUpper BIT NOT NULL,
+	amount DECIMAL(15,2) NOT NULL,
+	 CONSTRAINT PK_taxRentEmployee PRIMARY KEY (employeeId, periodId,excessTaxRentId),
+	 CONSTRAINT FK_taxRentEmployee_Period FOREIGN KEY (periodId) 
+      REFERENCES payrollPeriod(id),
+	   CONSTRAINT FK_taxRentEmployee_Employee FOREIGN KEY (employeesId) 
+    REFERENCES Employee(Idcard),
+	CONSTRAINT FK_taxRentEmployee_excessTaxRent FOREIGN KEY (excessTaxRentId) 
+    REFERENCES excessTaxRent (id)
+	);
+
+CREATE TABLE creditFiscalFamily(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+	amount DECIMAL (7,2)
+	childrenOrPartner BIT, --1 para hijos 2 para padres
+	startDate DATETIME,
+	endDate DATETIME,
+	is Active BIT DEFAULT 1
+	);
+
+	
+	
