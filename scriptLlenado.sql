@@ -1,26 +1,26 @@
 USE [Taller/empleados];
 -- Insertar 3 empresas
-INSERT INTO organizations (id, nameOrganizations, isActive) VALUES
-(1, 'TechSolutions SA', 1),
-(2, 'Industrias Globales', 1),
-(3, 'ServiCorp Ltda', 1);
+INSERT INTO organizations (nameOrganizations, isActive) VALUES
+('TechSolutions SA', 1),
+('Industrias Globales', 1),
+('ServiCorp Ltda', 1);
 
 -- Insertar 3 departamentos para cada empresa
-INSERT INTO departments(id, nameDepartment, organizationId, isActive) VALUES
+INSERT INTO departments(nameDepartment, organizationId, isActive) VALUES
 -- Empresa 1
-(1, 'Desarrollo Software', 1, 1),
-(2, 'Soporte Técnico', 1, 1),
-(3, 'Ventas TI', 1, 1),
+('Desarrollo Software', 1, 1),
+('Soporte Técnico', 1, 1),
+('Ventas TI', 1, 1),
 
 -- Empresa 2
-(4, 'Producción', 2, 1),
-(5, 'Logística', 2, 1),
-(6, 'Calidad', 2, 1),
+('Producción', 2, 1),
+('Logística', 2, 1),
+('Calidad', 2, 1),
 
 -- Empresa 3
-(7, 'Atención Cliente', 3, 1),
-(8, 'Operaciones', 3, 1),
-(9, 'Marketing', 3, 1);
+('Atención Cliente', 3, 1),
+('Operaciones', 3, 1),
+('Marketing', 3, 1);
 
 --Insertando periodos
 INSERT INTO payrollPeriod (period_number, year, pay_date) VALUES
@@ -57,24 +57,24 @@ SELECT
     rc.nombre AS FirstName,
     rc.apellido1 AS Lastname1,
     rc.apellido2 AS Lastname2,
-	--status siempre 1
-	 1 AS status,
-    -- DepartmentId aleatorio entre los 9 departamentos existentes
+    1 AS status,
     FLOOR(1 + (RAND() * 9)) AS departmentId
 FROM RegistroCivil rc;
 
+Select * FROM GrossSalary
 --Insertar Salarios Brutos en GrossSalary para cada empleado 
-INSERT INTO GrossSalary (employeesId, grossSalary, jobPosition, startDate, endDate, isActive)
+INSERT INTO GrossSalary (employeeId, grossSalary, jobPosition, startDate, endDate, isActive, fiscal)
 SELECT 
     e.Idcard AS employeesId,
     -- Salario aleatorio entre 500,000 y 6,000,000
-    ROUND(500000 + (RAND() * 5500000), 2) AS grossSalary,
+    ROUND(500000 + (ABS(CHECKSUM(NEWID())) % 5500000), 2) AS grossSalary,
     'Gerente' AS jobPosition,
     -- Fecha de inicio aleatoria en los últimos 3 años
     DATEADD(DAY, -FLOOR(RAND() * 1095), GETDATE()) AS startDate,
     NULL AS endDate,
     -- Todos están activos
-    1 AS isActive
+    1 AS isActive,
+	CASE WHEN ABS(CHECKSUM(NEWID())) % 2 = 0 THEN 1 ELSE 0 END AS fiscal
 FROM Employee e;
 
 
@@ -105,3 +105,36 @@ INSERT INTO excessTaxRent (startDate, endDate, descripcion, lowerLimit, upperLim
 ('2024-01-01', NULL, 'Escala 15%', 1352000.00, 2373000.00, 0.15, 1),
 ('2024-01-01', NULL, 'Escala 20%', 2373000.00, 4745000.00, 0.20, 1),
 ('2024-01-01', NULL, 'Escala 25%', 4745000.00, NULL, 0.25, 1);
+
+--
+INSERT INTO creditFiscalFamily(amount,childrenOrPartner, startDate,endDate, isActive) VALUES
+(1720.00, 1,'2024-01-01', NULL, 1),
+(2600.00, 2,'2024-01-01', NULL, 1);
+
+INSERT INTO creditFiscalFamilyperEmployee (
+    employeeId, startDate, endDate, havePartner, children, totalCredit, isActive
+)
+SELECT 
+    gs.employeeId,
+    COALESCE(gs.startDate, GETDATE()) AS startDate,
+    NULL AS endDate,
+    havePartner,
+    children,
+    -- Cálculo CORRECTO usando los valores REALES
+    (children * 1720.00) + (CASE WHEN havePartner = 1 THEN 2600.00 ELSE 0.00 END) AS totalCredit,
+    1 AS isActive
+FROM GrossSalary gs
+CROSS APPLY (
+    SELECT 
+        CASE 
+            WHEN ABS(CHECKSUM(NEWID())) % 2 = 0 THEN 1  -- Tiene partner
+            ELSE 0  -- No tiene partner
+        END AS havePartner,
+        CASE 
+            WHEN ABS(CHECKSUM(NEWID())) % 2 = 0 THEN ABS(CHECKSUM(NEWID())) % 4  -- 0-3 hijos
+            ELSE 1 + (ABS(CHECKSUM(NEWID())) % 3)  -- 1-3 hijos
+        END AS children
+) AS family_data
+WHERE gs.fiscal = 1;
+
+SELECT * FROM creditFiscalFamilyperEmployee
